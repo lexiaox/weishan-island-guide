@@ -1,0 +1,96 @@
+@import 'tailwindcss';
+
+:root { --ink:#18392f; --paper:#f5f0e4; --red:#a33a2e; --gold:#c49b56; }
+* { box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body { margin:0; background:#102c27; color:var(--ink); font-family:"Songti SC","STSong","Noto Serif SC",serif; }
+button,a { font:inherit; }
+button { color:inherit; }
+.site-shell { min-height:100vh; overflow:hidden; background:var(--paper); }
+.topbar { position:fixed; z-index:50; top:0; left:0; right:0; height:78px; display:flex; align-items:center; justify-content:space-between; padding:0 34px; border-bottom:1px solid rgba(24,57,47,.16); background:rgba(246,241,229,.9); backdrop-filter:blur(14px); }
+.brand { color:var(--ink); display:flex; align-items:center; gap:13px; text-decoration:none; }
+.brand-mark { width:42px; height:42px; display:grid; place-items:center; border:1px solid var(--red); color:var(--red); font-size:22px; transform:rotate(-3deg); position:relative; }
+.brand-mark:after { content:""; position:absolute; inset:3px; border:1px solid rgba(163,58,46,.35); }
+.brand strong,.brand small { display:block; }
+.brand strong { letter-spacing:.13em; font-size:16px; }
+.brand small { margin-top:3px; font:9px/1.2 Arial,sans-serif; letter-spacing:.24em; opacity:.55; }
+.top-actions { display:flex; gap:18px; align-items:center; }
+.weather { font-size:12px; letter-spacing:.08em; opacity:.68; }
+.round-button { width:36px; height:36px; border:1px solid rgba(24,57,47,.28); border-radius:50%; background:transparent; cursor:pointer; }
+
+.map-stage { position:relative; width:100vw; height:100vh; min-height:680px; padding-top:78px; background:#78bec7; overflow:hidden; }
+.map-viewport { position:absolute; inset:78px 0 0; display:grid; place-items:center; overflow:hidden; cursor:grab; touch-action:none; }
+.map-viewport.is-dragging { cursor:grabbing; }
+.map-canvas { position:relative; width:min(100%,calc((100vh - 78px) * 1140 / 788)); aspect-ratio:1140/788; flex:none; transform-origin:center center; transition:transform .18s ease-out; will-change:transform; }
+.map-viewport.is-dragging .map-canvas { transition:none; }
+.map-image { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; object-position:center; user-select:none; filter:saturate(.78) contrast(.95) brightness(.98); }
+.map-wash { position:absolute; inset:0; background:linear-gradient(90deg,rgba(244,239,225,.42) 0%,rgba(244,239,225,.08) 18%,transparent 42%,rgba(19,61,50,.08) 100%),linear-gradient(0deg,rgba(12,45,38,.15),transparent 24%); pointer-events:none; }
+.route-layer { position:absolute; z-index:3; inset:0; width:100%; height:100%; pointer-events:none; overflow:visible; }
+.route-layer path { fill:none; stroke:#ae4435; stroke-width:.42; stroke-dasharray:1.2 1.2; vector-effect:non-scaling-stroke; filter:drop-shadow(0 1px 0 rgba(255,255,255,.8)); animation:route-draw 1.2s ease both; }
+@keyframes route-draw { from { stroke-dashoffset:20; opacity:0; } to { stroke-dashoffset:0; opacity:1; } }
+
+.map-heading { position:absolute; z-index:15; left:20px; top:96px; padding:13px 16px 12px; max-width:310px; background:rgba(247,242,229,.82); border:1px solid rgba(24,57,47,.14); box-shadow:0 8px 24px rgba(16,52,43,.12); backdrop-filter:blur(8px); pointer-events:none; }
+.eyebrow { font-size:9px; letter-spacing:.24em; color:var(--red); }
+.map-heading h1 { margin:4px 0 2px; color:#143b31; font-size:23px; line-height:1.15; font-weight:600; letter-spacing:.05em; }
+.map-heading p { margin:0; font-size:10px; line-height:1.5; letter-spacing:.06em; opacity:.64; }
+
+.spot-marker { position:absolute; z-index:8; transform:translate(-50%,-50%); border:0; background:none; padding:0; cursor:pointer; display:flex; align-items:center; gap:8px; }
+.marker-dot { width:34px; height:34px; display:grid; place-items:center; border:1px solid rgba(255,255,255,.78); outline:1px solid #8f332a; outline-offset:3px; border-radius:50%; color:#fff8e9; background:#a63e32; font:9px Arial,sans-serif; box-shadow:0 7px 20px rgba(30,46,37,.28); transition:.25s ease; }
+.marker-label { white-space:nowrap; padding:6px 9px; color:#173a31; background:rgba(247,242,229,.9); border:1px solid rgba(24,57,47,.16); font-size:11px; letter-spacing:.06em; box-shadow:0 5px 18px rgba(22,45,37,.12); opacity:0; transform:translateX(-5px); transition:.25s ease; }
+.spot-marker:hover .marker-label,.spot-marker:focus-visible .marker-label,.spot-marker.is-active .marker-label { opacity:1; transform:none; }
+.spot-marker:hover .marker-dot,.spot-marker.is-active .marker-dot { transform:scale(1.13); background:#173f34; outline-color:#173f34; }
+
+.zoom-control { position:absolute; z-index:30; top:96px; right:20px; display:flex; align-items:center; gap:0; overflow:hidden; border:1px solid rgba(24,57,47,.18); background:rgba(247,242,229,.94); box-shadow:0 8px 24px rgba(16,52,43,.16); backdrop-filter:blur(8px); }
+.zoom-control button { width:38px; height:38px; border:0; border-right:1px solid rgba(24,57,47,.12); background:transparent; cursor:pointer; font:20px Arial,sans-serif; }
+.zoom-control button:hover:not(:disabled) { color:white; background:var(--ink); }
+.zoom-control button:disabled { cursor:not-allowed; opacity:.34; }
+.zoom-control span { min-width:52px; text-align:center; font:10px Arial,sans-serif; letter-spacing:.04em; }
+.zoom-control .reset-button { width:48px; border-right:0; border-left:1px solid rgba(24,57,47,.12); font:11px "Songti SC",serif; }
+
+.spot-card { position:absolute; z-index:20; right:20px; top:148px; width:min(330px,31vw); min-height:0; padding:27px 28px 25px; background:rgba(247,242,229,.91); border:1px solid rgba(24,57,47,.18); box-shadow:0 18px 46px rgba(14,45,38,.2); backdrop-filter:blur(12px); }
+.spot-card:before { content:""; position:absolute; inset:7px; border:1px solid rgba(164,59,46,.16); pointer-events:none; }
+.card-close { position:absolute; right:16px; top:13px; width:30px; height:30px; border:0; background:transparent; font-size:22px; cursor:pointer; opacity:.5; }
+.card-number { position:absolute; right:20px; bottom:12px; color:rgba(164,59,46,.07); font:700 70px/1 Arial,sans-serif; }
+.card-meta { display:flex; gap:7px; margin-bottom:22px; }
+.card-meta span { padding:4px 7px; border:1px solid rgba(24,57,47,.2); font-size:9px; letter-spacing:.08em; }
+.card-meta span:first-child { color:var(--red); border-color:rgba(164,59,46,.3); }
+.card-kicker { margin:0 0 6px; color:var(--red); font-size:10px; letter-spacing:.24em; }
+.spot-card h2 { margin:0; font-size:26px; font-weight:600; letter-spacing:.05em; }
+.card-subtitle { margin:7px 0 14px; color:#8a6c48; font-size:12px; letter-spacing:.06em; }
+.card-intro { position:relative; z-index:2; margin:0; font-size:12px; line-height:1.85; letter-spacing:.035em; }
+.card-image { position:relative; z-index:2; display:block; width:100%; aspect-ratio:16/9; margin-top:16px; object-fit:cover; border:1px solid rgba(24,57,47,.14); }
+
+.route-control { position:absolute; z-index:20; left:20px; bottom:24px; display:flex; align-items:center; gap:24px; padding:11px 13px; background:rgba(246,241,229,.92); box-shadow:0 8px 28px rgba(20,50,42,.16); border:1px solid rgba(24,57,47,.14); }
+.route-control>div { display:flex; align-items:center; gap:10px; }
+.route-icon { width:30px; height:30px; display:grid; place-items:center; border-radius:50%; color:#fff; background:var(--red); font-size:12px; }
+.route-control p,.route-control strong,.route-control small { display:block; margin:0; }
+.route-control strong { font-size:12px; letter-spacing:.07em; }
+.route-control small { margin-top:2px; font:9px Arial,sans-serif; opacity:.55; }
+.route-control button { border:1px solid rgba(24,57,47,.28); background:transparent; padding:7px 10px; font-size:10px; cursor:pointer; }
+.route-control button.active { color:#fff; background:var(--ink); }
+.spot-index { position:absolute; z-index:12; right:20px; bottom:24px; display:flex; gap:5px; }
+.spot-index button { border:0; border-top:1px solid rgba(247,242,229,.5); padding:7px 9px; color:#f9f3e6; background:rgba(18,57,48,.58); font-size:9px; cursor:pointer; backdrop-filter:blur(6px); }
+.spot-index button span { color:#d6b06f; margin-right:5px; }
+.spot-index button.active { background:var(--red); }
+
+@media (max-width:900px) {
+  .topbar { height:68px; padding:0 18px; }
+  .weather { display:none; }
+  .map-stage { padding-top:68px; }
+  .map-viewport { inset:68px 0 0; }
+  .map-canvas { width:min(100%,calc((100vh - 68px) * 1140 / 788)); }
+  .map-heading { top:82px; left:12px; padding:10px 12px; max-width:230px; }
+  .map-heading h1 { font-size:18px; }
+  .map-heading p { display:none; }
+  .zoom-control { top:82px; right:12px; }
+  .zoom-control button { width:34px; height:34px; }
+  .zoom-control span { display:none; }
+  .zoom-control .reset-button { width:42px; }
+  .spot-card { top:auto; right:12px; left:12px; bottom:82px; width:auto; padding:22px; }
+  .card-meta { margin-bottom:13px; }
+  .spot-card h2 { font-size:22px; }
+  .card-intro { line-height:1.65; }
+  .spot-index { display:none; }
+  .route-control { left:12px; bottom:14px; right:12px; justify-content:space-between; }
+  .marker-label { display:none; }
+}
