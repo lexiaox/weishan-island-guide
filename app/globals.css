@@ -17,6 +17,23 @@ button { color:inherit; }
 .top-actions { display:flex; gap:18px; align-items:center; }
 .weather { font-size:12px; letter-spacing:.08em; opacity:.68; }
 .round-button { width:36px; height:36px; border:1px solid rgba(24,57,47,.28); border-radius:50%; background:transparent; cursor:pointer; }
+.spot-search { position:relative; width:min(360px,32vw); }
+.spot-search input { width:100%; height:42px; padding:0 68px 0 40px; border:1px solid rgba(24,57,47,.22); border-radius:0; outline:0; color:var(--ink); background:rgba(255,252,243,.72); font:14px/1.2 "Songti SC","STSong","Noto Serif SC",serif; letter-spacing:.03em; transition:border-color .2s ease,background .2s ease,box-shadow .2s ease; }
+.spot-search input::placeholder { color:rgba(24,57,47,.52); }
+.spot-search input:focus { border-color:var(--red); background:#fffdf7; box-shadow:0 0 0 3px rgba(163,58,46,.1); }
+.search-icon { position:absolute; z-index:2; left:15px; top:13px; width:14px; height:14px; border:1.5px solid var(--ink); border-radius:50%; opacity:.68; pointer-events:none; }
+.search-icon:after { content:""; position:absolute; width:6px; height:1.5px; right:-5px; bottom:-3px; background:var(--ink); transform:rotate(45deg); transform-origin:left center; }
+.search-clear { position:absolute; z-index:3; right:9px; top:6px; width:30px; height:30px; padding:0; border:0; background:transparent; cursor:pointer; font:20px/1 Arial,sans-serif; opacity:.46; }
+.search-clear:hover { opacity:1; }
+.search-results { position:absolute; z-index:80; top:calc(100% + 9px); right:0; width:min(430px,88vw); max-height:min(430px,65vh); overflow-y:auto; border:1px solid rgba(24,57,47,.18); background:rgba(250,246,235,.98); box-shadow:0 18px 46px rgba(14,45,38,.24); }
+.search-summary { margin:0; padding:10px 14px 8px; border-bottom:1px solid rgba(24,57,47,.1); color:rgba(24,57,47,.62); font-size:12px; letter-spacing:.06em; }
+.search-results button { width:100%; min-height:62px; display:flex; align-items:center; justify-content:space-between; gap:18px; padding:10px 14px; border:0; border-bottom:1px solid rgba(24,57,47,.09); text-align:left; background:transparent; cursor:pointer; }
+.search-results button:last-child { border-bottom:0; }
+.search-results button:hover,.search-results button.is-highlighted { background:rgba(196,155,86,.16); }
+.search-results button span,.search-results button strong,.search-results button small { display:block; }
+.search-results button strong { margin-bottom:4px; font-size:15px; font-weight:600; letter-spacing:.04em; }
+.search-results button small { max-width:280px; overflow:hidden; color:rgba(24,57,47,.64); font-size:12px; line-height:1.4; text-overflow:ellipsis; white-space:nowrap; }
+.search-results button em { flex:none; padding:3px 6px; border:1px solid rgba(163,58,46,.25); color:var(--red); font-size:12px; font-style:normal; }
 
 .map-stage { position:relative; width:100vw; height:100vh; min-height:680px; padding-top:78px; background:#78bec7; overflow:hidden; }
 .map-viewport { position:absolute; inset:78px 0 0; display:grid; place-items:center; overflow:hidden; cursor:grab; touch-action:none; }
@@ -39,6 +56,9 @@ button { color:inherit; }
 .marker-label { white-space:nowrap; padding:6px 9px; color:#173a31; background:rgba(247,242,229,.9); border:1px solid rgba(24,57,47,.16); font-size:11px; letter-spacing:.06em; box-shadow:0 5px 18px rgba(22,45,37,.12); opacity:0; transform:translateX(-5px); transition:.25s ease; }
 .spot-marker:hover .marker-label,.spot-marker:focus-visible .marker-label,.spot-marker.is-active .marker-label { opacity:1; transform:none; }
 .spot-marker:hover .marker-dot,.spot-marker.is-active .marker-dot { transform:scale(1.13); background:#173f34; outline-color:#173f34; }
+.spot-marker.is-dimmed { opacity:.2; }
+.spot-marker.is-match .marker-dot { transform:scale(1.13); background:#173f34; outline-color:#173f34; box-shadow:0 0 0 7px rgba(247,242,229,.42),0 7px 20px rgba(30,46,37,.28); }
+.spot-marker.is-match .marker-label { opacity:1; transform:none; }
 
 .zoom-control { position:absolute; z-index:30; top:96px; right:20px; display:flex; align-items:center; gap:0; overflow:hidden; border:1px solid rgba(24,57,47,.18); background:rgba(247,242,229,.94); box-shadow:0 8px 24px rgba(16,52,43,.16); backdrop-filter:blur(8px); }
 .zoom-control button { width:38px; height:38px; border:0; border-right:1px solid rgba(24,57,47,.12); background:transparent; cursor:pointer; font:20px Arial,sans-serif; }
@@ -74,15 +94,21 @@ button { color:inherit; }
 .spot-index button.active { background:var(--red); }
 
 @media (max-width:900px) {
-  .topbar { height:68px; padding:0 18px; }
-  .weather { display:none; }
-  .map-stage { padding-top:68px; }
-  .map-viewport { inset:68px 0 0; }
-  .map-canvas { width:min(100%,calc((100vh - 68px) * 1140 / 788)); }
-  .map-heading { top:82px; left:12px; padding:10px 12px; max-width:230px; }
+  .topbar { height:120px; padding:10px 18px 12px; flex-wrap:wrap; }
+  .brand-mark { width:38px; height:38px; font-size:20px; }
+  .brand strong { font-size:15px; }
+  .weather,.round-button { display:none; }
+  .top-actions { order:3; width:100%; }
+  .spot-search { width:100%; }
+  .spot-search input { height:40px; }
+  .search-results { right:auto; left:0; width:100%; max-height:min(360px,55vh); }
+  .map-stage { padding-top:120px; min-height:720px; }
+  .map-viewport { inset:120px 0 0; }
+  .map-canvas { width:min(100%,calc((100vh - 120px) * 1140 / 788)); }
+  .map-heading { top:134px; left:12px; padding:10px 12px; max-width:230px; }
   .map-heading h1 { font-size:18px; }
   .map-heading p { display:none; }
-  .zoom-control { top:82px; right:12px; }
+  .zoom-control { top:134px; right:12px; }
   .zoom-control button { width:34px; height:34px; }
   .zoom-control span { display:none; }
   .zoom-control .reset-button { width:42px; }

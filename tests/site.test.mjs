@@ -51,3 +51,12 @@ test('defines Chinese site metadata', () => {
   assert.match(layout, /微山岛游览图/);
   assert.match(layout, /lang="zh-CN"/);
 });
+
+test('searches scenic spots and supports keyboard selection', () => {
+  assert.match(page, /placeholder="搜索景点、文化或码头"/);
+  assert.match(page, /spot\.name, spot\.tag, spot\.short, spot\.intro/);
+  assert.match(page, /event\.key === 'ArrowDown'/);
+  assert.match(page, /event\.key === 'Enter'/);
+  assert.match(page, /role="listbox"/);
+  assert.match(styles, /\.spot-marker\.is-dimmed/);
+});

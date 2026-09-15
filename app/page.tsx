@@ -1,9 +1,10 @@
 'use client';
 
-import { useRef, useState, type PointerEvent, type WheelEvent } from 'react';
+import { useMemo, useRef, useState, type KeyboardEvent, type PointerEvent, type WheelEvent } from 'react';
 import { spots } from '../content/spots';
 
 const clampScale = (value: number) => Math.min(2.6, Math.max(1, value));
+const normalizeSearch = (value: string) => value.trim().toLocaleLowerCase('zh-CN').replace(/\s+/g, '');
 
 export default function Home() {
   const [activeId, setActiveId] = useState('');
@@ -11,9 +12,18 @@ export default function Home() {
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
+  const [query, setQuery] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [highlightedResult, setHighlightedResult] = useState(0);
   const dragStart = useRef({ x: 0, y: 0, offsetX: 0, offsetY: 0 });
   const active = spots.find((spot) => spot.id === activeId);
   const routePath = spots.map((spot, index) => `${index === 0 ? 'M' : 'L'} ${spot.x} ${spot.y}`).join(' ');
+  const normalizedQuery = normalizeSearch(query);
+  const searchResults = useMemo(() => {
+    if (!normalizedQuery) return [];
+    return spots.filter((spot) => normalizeSearch([spot.name, spot.tag, spot.short, spot.intro].join('')).includes(normalizedQuery));
+  }, [normalizedQuery]);
+  const matchingIds = useMemo(() => new Set(searchResults.map((spot) => spot.id)), [searchResults]);
 
   const zoomTo = (next: number) => {
     const bounded = clampScale(next);
@@ -24,6 +34,34 @@ export default function Home() {
   const resetMap = () => {
     setScale(1);
     setOffset({ x: 0, y: 0 });
+  };
+
+  const chooseSpot = (spotId: string) => {
+    setActiveId(spotId);
+    setSearchOpen(false);
+  };
+
+  const handleSearchKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Escape') {
+      setQuery('');
+      setSearchOpen(false);
+      return;
+    }
+    if (!searchResults.length) return;
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      setSearchOpen(true);
+      setHighlightedResult((current) => (current + 1) % searchResults.length);
+    }
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      setSearchOpen(true);
+      setHighlightedResult((current) => (current - 1 + searchResults.length) % searchResults.length);
+    }
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      chooseSpot(searchResults[highlightedResult]?.id ?? searchResults[0].id);
+    }
   };
 
   const startDrag = (event: PointerEvent<HTMLDivElement>) => {
@@ -58,7 +96,49 @@ export default function Home() {
           <span className="brand-mark">微</span>
           <span><strong>微山岛游览图</strong><small>WEISHAN ISLAND GUIDE</small></span>
         </a>
-        <div className="top-actions"><span className="weather">湖风轻拂 · 适宜漫游</span><button className="round-button" aria-label="查看导览说明">?</button></div>
+        <div className="top-actions">
+          <div className="spot-search" role="search">
+            <span className="search-icon" aria-hidden="true" />
+            <input
+              value={query}
+              onChange={(event) => {
+                setQuery(event.target.value);
+                setHighlightedResult(0);
+                setSearchOpen(true);
+              }}
+              onFocus={() => setSearchOpen(true)}
+              onBlur={() => setSearchOpen(false)}
+              onKeyDown={handleSearchKeyDown}
+              placeholder="搜索景点、文化或码头"
+              aria-label="搜索景点"
+              aria-expanded={searchOpen && Boolean(normalizedQuery)}
+              aria-controls="search-results"
+              aria-autocomplete="list"
+            />
+            {query && <button className="search-clear" type="button" onPointerDown={(event) => event.preventDefault()} onClick={() => { setQuery(''); setSearchOpen(false); }} aria-label="清空搜索">×</button>}
+            {searchOpen && normalizedQuery && (
+              <div className="search-results" id="search-results" role="listbox" aria-label="搜索结果">
+                <p className="search-summary">{searchResults.length ? `找到 ${searchResults.length} 个景点` : '没有找到相关景点'}</p>
+                {searchResults.map((spot, index) => (
+                  <button
+                    key={spot.id}
+                    type="button"
+                    role="option"
+                    aria-selected={index === highlightedResult}
+                    className={index === highlightedResult ? 'is-highlighted' : ''}
+                    onPointerDown={(event) => event.preventDefault()}
+                    onMouseEnter={() => setHighlightedResult(index)}
+                    onClick={() => chooseSpot(spot.id)}
+                  >
+                    <span><strong>{spot.name}</strong><small>{spot.short}</small></span>
+                    <em>{spot.tag}</em>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <span className="weather">湖风轻拂 · 适宜漫游</span><button className="round-button" aria-label="查看导览说明">?</button>
+        </div>
       </header>
 
       <section className="map-stage" id="map" aria-label="微山岛景点地图">
@@ -76,7 +156,7 @@ export default function Home() {
             {routeVisible && <svg className="route-layer" viewBox="0 0 100 100" preserveAspectRatio="none" aria-label="推荐游览路线"><path d={routePath} /></svg>}
 
             {spots.map((spot, index) => (
-              <button key={spot.id} className={`spot-marker ${activeId === spot.id ? 'is-active' : ''}`} style={{ left: `${spot.x}%`, top: `${spot.y}%` }} onClick={() => setActiveId(spot.id)} aria-label={`查看${spot.name}介绍`}>
+              <button key={spot.id} className={`spot-marker ${activeId === spot.id ? 'is-active' : ''} ${normalizedQuery && !matchingIds.has(spot.id) ? 'is-dimmed' : ''} ${normalizedQuery && matchingIds.has(spot.id) ? 'is-match' : ''}`} style={{ left: `${spot.x}%`, top: `${spot.y}%` }} onClick={() => setActiveId(spot.id)} aria-label={`查看${spot.name}介绍`}>
                 <span className="marker-dot">{String(index + 1).padStart(2, '0')}</span><span className="marker-label">{spot.name}</span>
               </button>
             ))}
